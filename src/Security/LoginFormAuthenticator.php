@@ -41,9 +41,15 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $this->passwordEncoder = $passwordEncoder;
     }
 
+    /**
+     * Should this authenticator be used for this request?
+     *
+     * @param Request $request
+     * @return bool|void
+     */
     public function supports(Request $request)
     {
-        // TODO: Implement supports() method.
+        return self::LOGIN_ROUTE === $request->attributes->get('_route') && $request->isMethod('POST');
     }
 
     public function getCredentials(Request $request)
