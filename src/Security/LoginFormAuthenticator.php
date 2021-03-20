@@ -13,6 +13,7 @@ use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
 use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
+use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -58,7 +59,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         $credentials = [
             'email'       => $request->request->get('email'),
             'password'    => $request->request->get('password'),
-            '_csrf_token' => $request->request->get('_csrf_token'),
+            'csrf_token' => $request->request->get('_csrf_token'),
         ];
 
         $request->getSession()->set(Security::LAST_USERNAME, $credentials['email']);
@@ -66,19 +67,57 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         return $credentials;
     }
 
+    /**
+     * Return a UserInterface object based on the credentials.
+     *
+     * @param array $credentials
+     * @param UserProviderInterface $userProvider
+     * @return object|UserInterface|null
+     */
     public function getUser($credentials, UserProviderInterface $userProvider) # SECOND
     {
-        // TODO: Implement getUser() method.
+        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']])
+            ?? throw new UsernameNotFoundException(sprintf('User "%s" not found', $credentials['email']));
+
+        return $user;
     }
 
-    public function checkCredentials($credentials, UserInterface $user) # THIRD
+    /**
+     * Check credentials
+     *
+     * Check csrf token is valid
+     * Check password is valid
+     *
+     * @param array $credentials
+     * @param UserInterface $user
+     * @return bool
+     */
+    public function checkCredentials($credentials, UserInterface $user) # THIRD$
     {
-        // TODO: Implement checkCredentials() method.
+        $token = new CsrfToken('authenticate', $credentials['csrf_token']);
+
+        if (!$this->csrfTokenManager->isTokenValid($token)) {
+            throw new InvalidCsrfTokenException();
+        }
+
+        return $this->passwordEncoder->isPasswordValid($user, $credentials['password']);
     }
 
+
+    /**
+     * What should happen once the user is authenticated?
+     *
+     * @param Request $request
+     * @param TokenInterface $token
+     * @param string $providerKey
+     * @return Response|void|null
+     */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey) # FOURTH
     {
-        // TODO: Implement onAuthenticationSuccess() method.
+        dd($token);
+        // 1. Try to redirect the user to their original intended path
+
+        // 2. Redirect the user to a welcome page / home page
     }
 
     protected function getLoginUrl()
