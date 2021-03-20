@@ -54,6 +54,13 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
         return self::LOGIN_ROUTE === $request->attributes->get('_route') && $request->isMethod('POST');
     }
 
+
+    /**
+     * Gather the credentials which need to be checked in order to authenticate.
+     *
+     * @param Request $request
+     * @return array
+     */
     public function getCredentials(Request $request) # FIRST
     {
         $credentials = [
@@ -76,10 +83,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
      */
     public function getUser($credentials, UserProviderInterface $userProvider) # SECOND
     {
-        $user = $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']])
-            ?? throw new UsernameNotFoundException(sprintf('User "%s" not found', $credentials['email']));
-
-        return $user;
+        return $this->entityManager->getRepository(User::class)->findOneBy(['email' => $credentials['email']]);
     }
 
     /**
@@ -92,7 +96,7 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
      * @param UserInterface $user
      * @return bool
      */
-    public function checkCredentials($credentials, UserInterface $user) # THIRD$
+    public function checkCredentials($credentials, UserInterface $user) # THIRD
     {
         $token = new CsrfToken('authenticate', $credentials['csrf_token']);
 
@@ -114,14 +118,18 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
      */
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey) # FOURTH
     {
-        dd($token);
         // 1. Try to redirect the user to their original intended path
 
-        // 2. Redirect the user to a welcome page / home page
+        return new RedirectResponse($this->urlGenerator->generate('app_homepage'));
     }
 
+    /**
+     * On failure
+     *
+     * @return string
+     */
     protected function getLoginUrl()
     {
-        // TODO: Implement getLoginUrl() method.
+        return $this->urlGenerator->generate(self::LOGIN_ROUTE);
     }
 }
