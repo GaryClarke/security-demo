@@ -119,7 +119,12 @@ class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
     public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey) # FOURTH
     {
         // 1. Try to redirect the user to their original intended path
+        if ($targetPath = $this->getTargetPath($request->getSession(), $providerKey)) {
 
+            return new RedirectResponse($targetPath);
+        }
+
+        // 2. If not, redirect to homepage
         return new RedirectResponse($this->urlGenerator->generate('app_homepage'));
     }
 
