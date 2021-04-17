@@ -16,7 +16,7 @@
             </div>
         {% endif %}
 
-        <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Please sign in or <a href="{{ path('app_register') }}">register</a></h1>
         <div class="mb-3">
             <label for="inputEmail" class="form-label">Email address</label>
             <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control" required autofocus aria-describedby="emailHelp">
