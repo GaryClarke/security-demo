@@ -1,0 +1,10 @@
+{%  include 'base.html.twig' %}
+
+{% block body %}
+    <h1>Account {{ account.id }}</h1>
+    <ul>
+        <li>Account holder: {{ account.accountHolder.username }}</li>
+        <li>Account manager: {{ account.accountManager.username }}</li>
+        <li><a href="{{ path('delete_account', {id: account.id}) }}">Delete</a></li>
+    </ul>
+{% endblock %}
