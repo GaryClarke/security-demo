@@ -5,10 +5,15 @@ namespace App\Security\Voter;
 use App\Entity\Account;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authorization\Voter\Voter;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Core\User\UserInterface;
 
 class AccountVoter extends Voter
 {
+    public function __construct(public Security $security)
+    {
+    }
+
     protected function supports($attribute, $subject)
     {
         return in_array($attribute, ['SHOW', 'DELETE'])
@@ -30,10 +35,25 @@ class AccountVoter extends Voter
         }
 
         $accessIsGranted = match ($attribute) {
-            'SHOW' => $account->getAccountHolder() == $user || $account->getAccountManager() == $user,
-            'DELETE' => false
+            'SHOW' => $this->show($account, $user),
+            'DELETE' => $this->security->isGranted('ROLE_ADMIN')
         };
 
         return $accessIsGranted;
+    }
+
+
+    /**
+     * Rules for showing an account
+     *
+     * @param $account
+     * @param $user
+     * @return bool
+     */
+    private function show($account, $user): bool
+    {
+        return $account->getAccountHolder() == $user
+            || $account->getAccountManager() == $user
+            || $this->security->isGranted('ROLE_ADMIN');
     }
 }

@@ -23,4 +23,11 @@ class AppController extends AbstractController
     {
         return $this->render('app/alternate-page.html.twig', []);
     }
+
+
+    #[Route('/')]
+    public function home(): Response
+    {
+        return $this->redirectToRoute('app_login');
+    }
 }
